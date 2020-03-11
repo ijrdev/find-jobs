@@ -16,10 +16,11 @@ const run = async () => {
             // slowMo: 250
         }); 
         
+        // Colhendo os dados coletados das vagas dos sites.
         const empregosPE     = await siteEmpregosPE(browser, job);
         const informeVagasPE = await siteInformeVagasPE(browser, job);
 
-        const data = validateData(empregosPE, informeVagasPE);
+        const data = await validateData(empregosPE, informeVagasPE);
 
         // const vagas = await jobsRepository.getJobs();
 
