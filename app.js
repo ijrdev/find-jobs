@@ -1,111 +1,67 @@
 const puppeteer = require('puppeteer');
 
 // Módulos dos sites.
-// const siteEmpregosPE = require('./src/empregospe');
-// const siteInformeVagasPE = require('./src/informevagaspe');
+const siteEmpregosPE     = require('./src/empregospe');
+const siteInformeVagasPE = require('./src/informevagaspe');
+const jobsRepository     = require('./repositories/vagas-repository');
+const job                = process.argv.slice(2);
 
 const run = async () => {
     try
     {
         // Carrega o launch do puppeteeer.
-        // Dentro do launch é onde seta as configurações.
+        // Dentro do launch é onde seta as configurações do puppeteer.
         const browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
             // slowMo: 250
         }); 
-
-        // const empregosPE = await siteEmpregosPE(browser);
-
-        // console.log(empregosPE);
-
-        const ivPE = await informeVagasPE(browser);
         
-        await browser.close(); 
+        const empregosPE     = await siteEmpregosPE(browser, job);
+        const informeVagasPE = await siteInformeVagasPE(browser, job);
+
+        const data = validateData(empregosPE, informeVagasPE);
+
+        // const vagas = await jobsRepository.getJobs();
+
+        console.log(data);
+
+        await browser.close();
+        await process.exit();
     }
     catch(error) 
     {
         console.log(error);
 
         await browser.close();
+        await process.exit();
     }
 }
 
 run();
 
-// Função principal do qual administra e acessa determinado link.
-const informeVagasPE = async (browser) => {
-    const page = await browser.newPage();
-    page.setViewport({width: 0, height: 0});
+const validateData = (data1, data2) => {
+    var arrData = [];
 
-    var arrLinks = [];
-
-    // Passando os parâmetros necessários para realizar o scraping e chamando a função resposável por realizar a busca dos links da vaga filtrada.
-    const pagina = await getLinks(page, 'https://informevagaspe.blogspot.com', '#main');
-
-    // Validando os links pegos da busca.
-    if(!pagina)
+    // Validando os dados pegos da busca.
+    if(data1 && !data2)
     {
-        return [];
+        arrData = data1;
     }
 
-    console.log(pagina);
+    if(data2 && !data1)
+    {
+        arrData = data2;
+    }
+        
+    if(!data1 && !data2)
+    {
+        arrData = null;
+    }
+    
+    if(data1 && data2)
+    {
+        arrData = data1.concat(data2);
+    }
 
-    // var arrData = [];
-
-    // // Acessando os links colhidos das vagas e buscando informações.
-    // if(arrLinks != undefined && arrLinks != null && arrLinks != false && arrLinks != '')
-    // {
-    //     for(const link of arrLinks) {
-    //         arrData.push(await getData(page, link, '#mainContent'));
-    //     }
-    // }
+    return arrData;
 };
-
-// Função do qual pega os links relacionados a vaga escolhida.
-const getLinks = async (page, site, selector) => {
-    await page.goto(site);
-    await page.waitForSelector(selector);
-
-    // Lógica para pegar os links. 
-    return await page.evaluate(() => {
-        const elements    = document.querySelectorAll('#main .hfeed .wrapfullpost .hentry h3 a');
-        const arrElements = [];
-
-        for(let element of elements) 
-        {
-            const e = element.getAttribute('href').trim();
-
-            if(e.indexOf('auxiliar') != -1)
-            {
-                arrElements.push(e);
-            }
-
-            if(arrElements.length == 10)
-            {
-                return arrElements;
-            }
-        }
-
-        if(arrElements != undefined && arrElements != null && arrElements != false && arrElements != '')
-        {
-            return arrElements;
-        }
-
-        return false;
-    });
-};
-
-// Função responsável por acessar os links pegos e colher informações das vagas.
-const getData = async (page, site, selector) => {
-    await page.goto(site);
-    await page.waitForSelector(selector);
-
-    // Pegando os dados da vaga.
-    return await page.evaluate(() => {
-        const title = document.querySelector('.section_header h1').innerText.trim();
-        const email = document.querySelector('#apply p a').getAttribute('href').trim();
-
-        return {title: title, email: email};
-    });
-}
-

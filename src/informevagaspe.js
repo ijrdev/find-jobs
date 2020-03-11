@@ -1,42 +1,26 @@
 // Função principal do qual administra e acessa determinado link.
-const informeVagasPE = async (browser) => {
+const informeVagasPE = async (browser, job) => {
     const page = await browser.newPage();
     page.setViewport({width: 0, height: 0});
 
     var arrLinks = [];
 
     // Passando os parâmetros necessários para realizar o scraping e chamando a função resposável por realizar a busca dos links da vaga filtrada.
-    const pagina1 = await getLinks(page, 'http://www.empregospernambuco.com.br/jobs', '#mainContent');
-    const pagina2 = await getLinks(page, 'http://www.empregospernambuco.com.br/jobs/page/2', '#mainContent');
+    const pagina = await getLinks(job, page, 'https://informevagaspe.blogspot.com', '#main');
 
     // Validando os links pegos da busca.
-    if(pagina1 && !pagina2)
+    if(!pagina)
     {
-        arrLinks = pagina1;
-    }
-
-    if(pagina2 && !pagina1)
-    {
-        arrLinks = pagina2;
-    }
-        
-    if(!pagina1 && !pagina2)
-    {
-        arrLinks = null;
-    }
-    
-    if(pagina1 && pagina2)
-    {
-        arrLinks = pagina1.concat(pagina2);
+        return [];
     }
 
     var arrData = [];
 
     // Acessando os links colhidos das vagas e buscando informações.
-    if(arrLinks != undefined && arrLinks != null && arrLinks != false && arrLinks != '')
+    if(pagina != undefined && pagina != null && pagina != false && pagina != '')
     {
-        for(const link of arrLinks) {
-            arrData.push(await getData(page, link, '#mainContent'));
+        for(const link of pagina) {
+            arrData.push(await getData(page, link, '#main-wrapper'));
         }
     }
 
@@ -44,22 +28,27 @@ const informeVagasPE = async (browser) => {
 };
 
 // Função do qual pega os links relacionados a vaga escolhida.
-const getLinks = async (page, site, selector) => {
+const getLinks = async (job, page, site, selector) => {
     await page.goto(site);
     await page.waitForSelector(selector);
 
     // Lógica para pegar os links. 
-    return await page.evaluate(() => {
-        const elements    = document.querySelectorAll('ol li .job-title h3 a');
+    return await page.evaluate((job) => {
+        const elements    = document.querySelectorAll('#main .hfeed .wrapfullpost .hentry h3 a');
         const arrElements = [];
 
         for(let element of elements) 
         {
             const e = element.getAttribute('href').trim();
 
-            if(e.indexOf('abc') != -1)
+            if(e.indexOf(job) != -1)
             {
                 arrElements.push(e);
+            }
+
+            if(arrElements.length == 15)
+            {
+                return arrElements;
             }
         }
 
@@ -69,7 +58,7 @@ const getLinks = async (page, site, selector) => {
         }
 
         return false;
-    });
+    }, job);
 };
 
 // Função responsável por acessar os links pegos e colher informações das vagas.
@@ -79,11 +68,11 @@ const getData = async (page, site, selector) => {
 
     // Pegando os dados da vaga.
     return await page.evaluate(() => {
-        const title = document.querySelector('.section_header h1').innerText.trim();
-        const email = document.querySelector('#apply p a').getAttribute('href').trim();
+        const title = document.querySelector('.wrapfullpost h3 a').innerText.trim();
+        const email = document.querySelector('.entry-content div b span').innerText.trim();
 
         return {title: title, email: email};
     });
 }
 
-module.exports = empregosPE;
+module.exports = informeVagasPE;
