@@ -3,8 +3,6 @@ const informeVagasPE = async (browser, job) => {
     const page = await browser.newPage();
     page.setViewport({width: 0, height: 0});
 
-    var arrLinks = [];
-
     // Passando os parâmetros necessários para realizar o scraping e chamando a função resposável por realizar a busca dos links da vaga filtrada.
     const pagina = await getLinks(job, page, 'https://informevagaspe.blogspot.com', '#main');
 
@@ -19,7 +17,8 @@ const informeVagasPE = async (browser, job) => {
     // Acessando os links colhidos das vagas e buscando informações.
     if(pagina != undefined && pagina != null && pagina != false && pagina != '')
     {
-        for(const link of pagina) {
+        for(const link of pagina) 
+        {
             arrData.push(await getData(page, link, '#main-wrapper'));
         }
     }
@@ -46,7 +45,7 @@ const getLinks = async (job, page, site, selector) => {
                 arrElements.push(e);
             }
 
-            if(arrElements.length == 15)
+            if(arrElements.length == 10)
             {
                 return arrElements;
             }
@@ -68,10 +67,10 @@ const getData = async (page, site, selector) => {
 
     // Pegando os dados da vaga.
     return await page.evaluate(() => {
-        const title = document.querySelector('.wrapfullpost h3 a').innerText.trim();
-        const email = document.querySelector('.entry-content div b span').innerText.trim();
+        const title  = document.querySelector('.wrapfullpost h3 a') != null ? document.querySelector('.wrapfullpost h3 a').innerText.trim() : '';
+        const email  = document.querySelector('.entry-content div b span') != null ? document.querySelector('.entry-content div b span').innerText.trim().toLowerCase() : document.querySelector('.entry-content div a').innerText.trim().toLowerCase();
 
-        return {title: title, email: email};
+        return {title: title, email: email, site: 'INFORMEVAGASPE'};
     });
 }
 

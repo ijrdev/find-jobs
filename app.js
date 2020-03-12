@@ -1,10 +1,10 @@
-const puppeteer = require('puppeteer');
+const puppeteer      = require('puppeteer');
+const jobsRepository = require('./repositories/jobs-repository');
+const job            = process.argv.slice(2);
 
 // Módulos dos sites.
 const siteEmpregosPE     = require('./src/empregospe');
 const siteInformeVagasPE = require('./src/informevagaspe');
-const jobsRepository     = require('./repositories/vagas-repository');
-const job                = process.argv.slice(2);
 
 const run = async () => {
     try
@@ -20,11 +20,39 @@ const run = async () => {
         const empregosPE     = await siteEmpregosPE(browser, job);
         const informeVagasPE = await siteInformeVagasPE(browser, job);
 
+
+
+
+
+        // VALIDAR AMBOS OS ARRAYS COM OS DADOS, 
+        // POIS SE TIVER A VAGA EM UM SITE E O OUTRO TBM IRÁ REGISTRAR DUPLICATA
+        // CRIAR COLLECTION DE KEY_JOBS(CHAVES DAS VAGAS)
+
         const data = await validateData(empregosPE, informeVagasPE);
 
-        // const vagas = await jobsRepository.getJobs();
 
-        console.log(data);
+
+
+
+
+
+        if(data != undefined && data != null && data != false && data != '')
+        {
+            for(let value of data) 
+            {
+                if(value.title != '' && value.email != '')
+                {
+                    const findEmail = await jobsRepository.getJob({email: value.email});
+
+                    if(findEmail == undefined || findEmail == null || findEmail == false || findEmail == '')
+                    {
+                        await jobsRepository.addJob(value);
+                    }
+                }
+            }
+        }
+
+        console.log('OK!');
 
         await browser.close();
         await process.exit();
@@ -56,7 +84,7 @@ const validateData = (data1, data2) => {
         
     if(!data1 && !data2)
     {
-        arrData = null;
+        arrData = [];
     }
     
     if(data1 && data2)
