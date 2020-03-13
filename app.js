@@ -1,6 +1,6 @@
 const puppeteer      = require('puppeteer');
 const jobsRepository = require('./repositories/jobs-repository');
-const job            = process.argv.slice(2);
+const sendEmail      = require('sendmail');
 
 // Módulos dos sites.
 const siteEmpregosPE     = require('./src/empregospe');
@@ -16,19 +16,29 @@ const run = async () => {
             // slowMo: 250
         }); 
         
-        // Colhendo os dados coletados das vagas dos sites.
-        const empregosPE     = await siteEmpregosPE(browser, job);
-        const informeVagasPE = await siteInformeVagasPE(browser, job);
+        // Vagas a serem pesquisadas.
+        const arrVagas = [
+            'vendedor',
+            'analista',
+            'assistente',
+        ];
+
+        console.log('FIND JOBS STARTED...');
+
+        // Loop do qual irá buscar pelas vagas de acordo com as tags.
+        for(const job of arrVagas)
+        {   
+            // Colhendo os dados coletados das vagas dos sites.
+            const empregosPE     = await siteEmpregosPE(browser, job);
+            const informeVagasPE = await siteInformeVagasPE(browser, job);
 
 
 
 
 
-        // VALIDAR AMBOS OS ARRAYS COM OS DADOS, 
-        // POIS SE TIVER A VAGA EM UM SITE E O OUTRO TBM IRÁ REGISTRAR DUPLICATA
-        // CRIAR COLLECTION DE KEY_JOBS(CHAVES DAS VAGAS)
 
-        const data = await validateData(empregosPE, informeVagasPE);
+            // AJUSTAR A FUNCAO validateData() POIS ESTÁ TRAZENDO SEMPRE UM ARRAY VAZIO.
+            // AJUSTAR AS QUERY SELECTOR QUE BUSCA AS VAGAS DOS SITES, DEIXAR MAIS CLEAN E DIRETA.
 
 
 
@@ -36,23 +46,26 @@ const run = async () => {
 
 
 
-        if(data != undefined && data != null && data != false && data != '')
-        {
-            for(let value of data) 
-            {
-                if(value.title != '' && value.email != '')
-                {
-                    const findEmail = await jobsRepository.getJob({email: value.email});
+            const data = await validateData(empregosPE, informeVagasPE);
+            
+            // if(data != undefined && data != null && data != false && data != '')
+            // {
+            //     for(const value of data) 
+            //     {
+            //         if(value.title != '' && value.email != '')
+            //         {
+            //             const findEmail = await jobsRepository.getJob({email: value.email});
 
-                    if(findEmail == undefined || findEmail == null || findEmail == false || findEmail == '')
-                    {
-                        await jobsRepository.addJob(value);
-                    }
-                }
-            }
+            //             if(findEmail == undefined || findEmail == null || findEmail == false || findEmail == '')
+            //             {
+            //                 await jobsRepository.addJob(value);
+            //             }
+            //         }
+            //     }
+            // }
         }
 
-        console.log('OK!');
+        console.log('END.');
 
         await browser.close();
         await process.exit();
@@ -69,7 +82,8 @@ const run = async () => {
 run();
 
 const validateData = (data1, data2) => {
-    var arrData = [];
+    var arrData    = [];
+    var arrAxiliar = [];
 
     // Validando os dados pegos da busca.
     if(data1 && !data2)
@@ -89,8 +103,26 @@ const validateData = (data1, data2) => {
     
     if(data1 && data2)
     {
-        arrData = data1.concat(data2);
+        arrAxiliar.concat(data1, data2);
+
+        for(const item of arrAxiliar) 
+        {
+            console.log('DENTRO')
+            console.log(item)
+            if(arrAxiliar.indexOf(item) == -1) 
+            console.log('ADD')
+            console.log(item)
+                arrData.push(item);
+        }
     }
 
     return arrData;
 };
+
+const findJobs = async (browser, arrVagas) => {
+    
+}
+
+const email = () => {
+    
+}
