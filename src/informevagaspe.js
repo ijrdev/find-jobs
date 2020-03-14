@@ -67,8 +67,17 @@ const getData = async (page, site, selector) => {
 
     // Pegando os dados da vaga.
     return await page.evaluate(() => {
-        const title  = document.querySelector('.wrapfullpost h3 a') != null ? document.querySelector('.wrapfullpost h3 a').innerText.trim() : '';
-        const email  = document.querySelector('.entry-content div b span') != null ? document.querySelector('.entry-content div b span').innerText.trim().toLowerCase() : document.querySelector('.entry-content div a').innerText.trim().toLowerCase();
+        const title  = document.querySelector('#main .hfeed .wrapfullpost .hentry h3 a') != null ? document.querySelector('.wrapfullpost h3 a').innerText.trim() : '';
+        var email    = '';
+
+        if(document.querySelector('.entry-content div b span') != null)
+        {
+            email = document.querySelector('.entry-content div b span').innerText.trim().toLowerCase();
+        }
+        else if(document.querySelector('.entry-content div a') != null)
+        {
+            email = document.querySelector('.entry-content div a').innerText.trim().toLowerCase();
+        }
 
         return {title: title, email: email, site: 'INFORMEVAGASPE'};
     });

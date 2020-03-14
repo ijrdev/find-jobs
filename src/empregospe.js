@@ -65,11 +65,9 @@ const getData = async (page, site, selector) => {
     // Pegando os dados da vaga.
     return await page.evaluate(() => {
         const title = document.querySelector('.section_header h1') != null ? document.querySelector('.section_header h1').innerText.trim() : '';
-        const email = document.querySelector('#apply p a') != null ? document.querySelector('#apply p a').getAttribute('href').trim().toLowerCase() : '';
+        const email = document.querySelector('#apply p a') != null ? document.querySelector('#apply p a').innerText.trim().toLowerCase() : '';
 
-        const splitEmail = email.split(":");
-
-        return {title: title, email: splitEmail[1], site: 'EMPREGOSPE'};
+        return {title: title, email: email, site: 'EMPREGOSPE'};
     });
 }
 
