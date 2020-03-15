@@ -21,7 +21,7 @@ const empregosPE = async (browser, job) => {
     {
         for(const link of pagina) 
         {
-            arrData.push(await getData(page, link, '#mainContent'));
+            arrData.push(await getData(page, link, '#mainContent', job));
         }
     }
 
@@ -58,17 +58,17 @@ const getLinks = async (job, page, site, selector) => {
 };
 
 // Função responsável por acessar os links pegos e colher informações das vagas.
-const getData = async (page, site, selector) => {
+const getData = async (page, site, selector, job) => {
     await page.goto(site);
     await page.waitForSelector(selector);
 
     // Pegando os dados da vaga.
-    return await page.evaluate(() => {
+    return await page.evaluate((job) => {
         const title = document.querySelector('.section_header h1') != null ? document.querySelector('.section_header h1').innerText.trim() : '';
         const email = document.querySelector('#apply p a') != null ? document.querySelector('#apply p a').innerText.trim().toLowerCase() : '';
 
-        return {title: title, email: email, site: 'EMPREGOSPE'};
-    });
+        return {title: title, email: email, tag: job, site: 'EMPREGOSPE'};
+    }, job);
 }
 
 module.exports = empregosPE;

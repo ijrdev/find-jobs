@@ -30,6 +30,11 @@ const FindJobs = mongoose.Schema({
         type: String,
         trim: true,
         require: true
+    },
+    tag: {
+        type: String,
+        require: true,
+        trim: true
     }
 });
 

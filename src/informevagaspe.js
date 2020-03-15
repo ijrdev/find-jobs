@@ -19,7 +19,7 @@ const informeVagasPE = async (browser, job) => {
     {
         for(const link of pagina) 
         {
-            arrData.push(await getData(page, link, '#main-wrapper'));
+            arrData.push(await getData(page, link, '#main-wrapper', job));
         }
     }
 
@@ -61,12 +61,12 @@ const getLinks = async (job, page, site, selector) => {
 };
 
 // Função responsável por acessar os links pegos e colher informações das vagas.
-const getData = async (page, site, selector) => {
+const getData = async (page, site, selector, job) => {
     await page.goto(site);
     await page.waitForSelector(selector);
 
     // Pegando os dados da vaga.
-    return await page.evaluate(() => {
+    return await page.evaluate((job) => {
         const title  = document.querySelector('#main .hfeed .wrapfullpost .hentry h3 a') != null ? document.querySelector('.wrapfullpost h3 a').innerText.trim() : '';
         var email    = '';
 
@@ -79,8 +79,8 @@ const getData = async (page, site, selector) => {
             email = document.querySelector('.entry-content div a').innerText.trim().toLowerCase();
         }
 
-        return {title: title, email: email, site: 'INFORMEVAGASPE'};
-    });
+        return {title: title, email: email, tag: job, site: 'INFORMEVAGASPE'};
+    }, job);
 }
 
 module.exports = informeVagasPE;

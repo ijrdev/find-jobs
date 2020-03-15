@@ -4,8 +4,8 @@ const getJob = (email) => {
     return Jobs.find(email);
 };
 
-const getJobs = () => {
-    return Jobs.find();
+const getJobs = (job) => {
+    return Jobs.find(job);
 };
 
 const addJob = (job) => {

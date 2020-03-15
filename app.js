@@ -1,6 +1,8 @@
 const puppeteer      = require('puppeteer');
 const jobsRepository = require('./repositories/jobs-repository');
 const nodeMailer     = require('nodemailer');
+const dateAndTime    = require('date-and-time');
+const args           = process.argv.slice(2);
 
 // Módulos dos sites.
 const siteEmpregosPE     = require('./src/empregospe');
@@ -20,14 +22,37 @@ const run = async () => {
 
         // Vagas a serem pesquisadas.
         const arrVagas = [
-            'telefonia',
-            'telemarketing',
-            'limpeza',
-            'servico',
+            'desenvolvedor',
+            'desenvolvimento',
+            'web',
         ];
 
-        // const startFindJobs = await findJobs(browser, arrVagas);
-        // const email         = await sendEmail();
+        // Usuários que serão enviados os emails de acordo com a vaga pretendida.
+        const users = [
+            {
+                email: 'ivanildo.junior.dev@gmail.com',
+                jobs: [
+                    'desenvolvedor',
+                    'estagio'
+                ]
+            },
+            {
+                email: 'aniziomartinianob@gmail.com',
+                jobs: [
+                    'desenvolvedor',
+                    'estagio'
+                ]
+            }
+        ];
+
+        if(args[0] == 'find-jobs')
+        {
+            const startFindJobs = await findJobs(browser, arrVagas);
+        }
+        else if(args[0] == 'email')
+        {
+            const email = await sendJobs(users);
+        }
 
         console.log('END.');
 
@@ -102,26 +127,50 @@ const findJobs = async (browser, arrVagas) => {
     }
 }
 
-const sendEmail = async () => {
+const sendJobs = async (users) => {
+    for(const user of users) 
+    {
+        var arrTags = [];
+
+        for(const job of user.jobs) 
+        {
+            const getTag = await jobsRepository.getJobs({tag: job, date: dateAndTime.format(new Date(), 'DD/MM/YYYY')});
+
+            var tag = "<h3>"+job.toUpperCase()+"</h3>";
+
+            arrTags.push(tag);
+
+            // Tratando os dados trazidos.
+            for(const item of getTag) 
+            {
+                var vaga = "<strong>Título: </strong>"+item.title+"<br> <strong>Email: </strong>"+item.email+"<br> <strong>Data: </strong>"+item.date+"<br><br>";
+
+                arrTags.push(vaga);
+            }
+        }
+
+        await sendEmail(user.email, arrTags.toString().replace(/,/g, ''));
+    }
+}
+
+const sendEmail = async (email, vagas) => {
     const transporter = nodeMailer.createTransport({
         host: "smtp.gmail.com",
         port: 587,
         secure: false, // true for 465, false for other ports
         auth: {
             user: 'ivanildo.m.g.junior@gmail.com',
-            pass: 'jr87845838'
+            pass: ''
         }
     });
 
     const mailOptions = {
         from: 'ivanildo.m.g.junior@gmail.com',
-        to: 'ivanildo.junior.dev@gmail.com',
-        subject: 'PRIMEIRO ENVIO DE EMAIL NODEJS.',
-        // text: 'AEEEEEEEEEEEEEEEEEEEEE!',
-        html: '<h1>tudo ok</h1>'
+        to: email,
+        subject: 'FIND-JOBS - Envio diário das vagas encontradas.',
+        // text: vagas,
+        html: vagas
     };
 
     const info = await transporter.sendMail(mailOptions);
-
-    // console.log("Message sent: %s", info.messageId);
 }
