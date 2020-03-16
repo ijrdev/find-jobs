@@ -21,10 +21,18 @@ const run = async () => {
         }); 
 
         // Vagas a serem pesquisadas.
-        const arrVagas = [
-            'desenvolvedor',
+        const arrVagas1 = [
+            'edificacoes',
+            'estagiario',
             'desenvolvimento',
-            'web',
+            'administrativo'
+        ];
+
+        const arrVagas2 = [
+            'estagio',
+            'engenharia',
+            'civil',
+            'desenvolvedor',
         ];
 
         // Usuários que serão enviados os emails de acordo com a vaga pretendida.
@@ -32,22 +40,45 @@ const run = async () => {
             {
                 email: 'ivanildo.junior.dev@gmail.com',
                 jobs: [
+                    'estagio',
+                    'engenharia',
+                    'civil',
                     'desenvolvedor',
-                    'estagio'
+                    'edificacoes',
+                    'estagiario',
+                    'desenvolvimento',
+                    'administrativo'
                 ]
             },
             {
-                email: 'aniziomartinianob@gmail.com',
+                email: 'matheusgndematos@gmail.com',
                 jobs: [
+                    'estagio',
+                    'estagiario',
                     'desenvolvedor',
-                    'estagio'
+                    'desenvolvimento',
                 ]
-            }
+            },
+            {
+                email: 'ivanacecilio@hotmail.com',
+                jobs: [
+                    'edificacoes',
+                    'estagio',
+                    'estagiario',
+                    'civil',
+                    'engenharia',
+                    'administrativo'
+                ]
+            },
         ];
 
-        if(args[0] == 'find-jobs')
+        if(args[0] == 'find-jobs-1')
         {
-            const startFindJobs = await findJobs(browser, arrVagas);
+            const startFindJobs = await findJobs(browser, arrVagas1);
+        }
+        else if(args[0] == 'find-jobs-2')
+        {
+            const startFindJobs = await findJobs(browser, arrVagas2);
         }
         else if(args[0] == 'email')
         {
@@ -136,20 +167,26 @@ const sendJobs = async (users) => {
         {
             const getTag = await jobsRepository.getJobs({tag: job, date: dateAndTime.format(new Date(), 'DD/MM/YYYY')});
 
-            var tag = "<h3>"+job.toUpperCase()+"</h3>";
-
-            arrTags.push(tag);
-
-            // Tratando os dados trazidos.
-            for(const item of getTag) 
+            if(getTag != undefined && getTag != null && getTag != false && getTag != '')
             {
-                var vaga = "<strong>Título: </strong>"+item.title+"<br> <strong>Email: </strong>"+item.email+"<br> <strong>Data: </strong>"+item.date+"<br><br>";
+                var tag = "<h3>"+job.toUpperCase()+"</h3>";
 
-                arrTags.push(vaga);
+                arrTags.push(tag);
+            
+                // Tratando os dados trazidos.
+                for(const item of getTag) 
+                {
+                    var vaga = "<strong>Título: </strong>"+item.title+"<br> <strong>Email: </strong>"+item.email+"<br> <strong>Data: </strong>"+item.date+"<br><br>";
+
+                    arrTags.push(vaga);
+                }
             }
         }
 
-        await sendEmail(user.email, arrTags.toString().replace(/,/g, ''));
+        if(arrTags != undefined && arrTags != null && arrTags != false && arrTags != '')
+        {
+            await sendEmail(user.email, arrTags.toString().replace(/,/g, ''));
+        }
     }
 }
 
